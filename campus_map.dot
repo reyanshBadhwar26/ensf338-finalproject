@@ -1,0 +1,41 @@
+strict graph CampusMap {
+    HUNTER_COMMONS -- ARTS [weight=7];
+    HUNTER_COMMONS -- LIBRARY [weight=4];
+    HUNTER_COMMONS -- BOOKSTORE [weight=8];
+
+    ARTS -- SCI_B [weight=2];
+    ARTS -- LIBRARY [weight=5];
+
+    SCI_B -- KINESIOLOGY [weight=6];
+    SCI_B -- SCI_A [weight=2];
+
+    KINESIOLOGY -- GYM [weight=2];
+
+    LIBRARY -- SCI_A [weight=3];
+    LIBRARY -- MACHALL [weight=6];
+    LIBRARY -- ICT [weight=4];
+
+    SCI_A -- GYM [weight=5];
+    SCI_A -- ENG_BLOCK [weight=2];
+
+    BOOKSTORE -- MACHALL [weight=3];
+
+    MACHALL -- ICT [weight=5];
+    MACHALL -- ADMIN [weight=2];
+    MACHALL -- STUDENT_UNION [weight=6];
+
+    ICT -- ENG_BLOCK [weight=6];
+    ICT -- STUDENT_UNION [weight=3];
+    ICT -- PARKADE [weight=7];
+
+    ENG_BLOCK -- PARKADE [weight=11];
+
+    ADMIN -- RESIDENCE [weight=10];
+    ADMIN -- STUDENT_UNION [weight=4];
+
+    STUDENT_UNION -- RESIDENCE [weight=5];
+
+    PARKADE -- RESIDENCE [weight=3];
+
+    GYM -- ENG_BLOCK [weight=4];
+}
