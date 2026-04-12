@@ -1,7 +1,7 @@
 import re
 from building import Building
 from campus import Campus
-import campus
+import campus as campus
 
 
 def load_map_from_dot(filename: str, campus):
@@ -49,7 +49,7 @@ def load_map_from_dot(filename: str, campus):
 
 
 # TEST USAGE 
-test = campus.Campus()
-load_map_from_dot("campus_map.dot", test)
-print(test.buildings)
-print(test.pathways)
+# test = campus.Campus()
+# load_map_from_dot("../data/campus_map.dot", test)
+# print(test.buildings)
+# print(test.pathways)
