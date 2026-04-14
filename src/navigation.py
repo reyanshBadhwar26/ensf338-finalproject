@@ -90,11 +90,11 @@ def shortest_path(campus_graph, start_building):
 
         visited.add(current_vertex)
 
-        for neighbor, time in campus_graph.pathways[current_vertex].items():
+        for neighbor, weight in campus_graph.pathways[current_vertex].items():
             if neighbor in visited:
                 continue
 
-            new_dist = current_dist + time
+            new_dist = current_dist + weight
 
             if new_dist < times[neighbor]:
                 times[neighbor] = new_dist
@@ -118,4 +118,39 @@ def get_path(previous_buildings, start_building, end_building):
     else:
         return None
 
+def get_shortest_path(campus_graph, start_building, end_building):
 
+    if start_building not in campus_graph.pathways:
+        print(f"Invalid start building: {start_building}")
+        return None
+
+    if end_building not in campus_graph.pathways:
+        print(f"Invalid destination building: {end_building}")
+        return None
+
+    result = shortest_path(campus_graph, start_building)
+    if result is None:
+        print("Path can not be computed")
+        return None
+
+    times, previous_buildings = result
+    path = get_path(previous_buildings, start_building, end_building)
+
+    if path is None:
+        print(f"No route found from {start_building} to {end_building}.")
+        return None
+
+    total_distance = times[end_building]
+
+    # Display the route
+    print(f"\nShortest route from {start_building} to {end_building}:")
+    print(" -> ".join(path))
+    print(f"Total travel time: {total_distance}")
+
+    # Return for history tracking
+    return {
+        "start": start_building,
+        "end": end_building,
+        "path": path,
+        "total_time": total_distance
+    }

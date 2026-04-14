@@ -13,7 +13,7 @@ class ServiceRequest:
         self.requester_name = requester_name
 
 
-    def __repre__(self):
+    def __repr__(self):
         return(f"ServiceRequest("
                f"id = '{self.request_id}', "
                f"type = '{self.service_type}', "

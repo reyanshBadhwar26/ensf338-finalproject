@@ -21,17 +21,22 @@ class NavigationHistory:
     def __init__(self):
         self.history = Stack()
 
-    def add(self, start, end, path, distance):
+    def add(self, start, end, path, time):
         step = {
         "start": start,
         "end": end,
         "path": path,
-        "distance": distance
+        "total_time": time
         }
 
         self.history.push(step)
 
     def undo(self):
-        self.history.pop()
+        if self.history.peek() is None:
+            return None
 
+        if len(self.history.data) == 1:
+            return self.history.peek()
+
+        self.history.pop()
         return self.history.peek()
