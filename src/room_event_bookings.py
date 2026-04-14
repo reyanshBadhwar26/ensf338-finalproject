@@ -1,10 +1,22 @@
-from bisect import bisect_left
 from datetime import datetime, date, time, timedelta
 from typing import Dict, List, Optional, Tuple
 
 #Bonus Part
 from booking_avl import BookingAVLTree
 import room
+
+def binary_search_left(keys, target):
+    left = 0
+    right = len(keys)
+
+    while left < right:
+        mid = (left + right) // 2
+        if keys[mid] < target:
+            left = mid + 1
+        else:
+            right = mid
+
+    return left
 
 class Booking:
     def __init__(self, room: str, event_date: date, start_time: time, end_time: time, event_name: str):
@@ -40,12 +52,13 @@ class RoomEventBookings:
         # Bonus 2.7 balanced index
         self.avl_index = BookingAVLTree()
 
+
     def _booking_sort_key(self, booking: Booking) -> Tuple[time, str, time, str]:
         return (booking.start_time, booking.room, booking.end_time, booking.event_name)
 
     def _insert_sorted(self, items: List[Booking], booking: Booking) -> None:
         keys = [self._booking_sort_key(item) for item in items]
-        index = bisect_left(keys, self._booking_sort_key(booking))
+        index = binary_search_left(keys, self._booking_sort_key(booking))
         items.insert(index, booking)
 
     def _remove_from_list(self, items: List[Booking], booking: Booking) -> bool:
@@ -69,7 +82,7 @@ class RoomEventBookings:
         day_rooms = self.bookings_by_room_day.setdefault(booking.event_date, {})
         room_bookings = day_rooms.setdefault(booking.room, [])
 
-        insert_pos = bisect_left(
+        insert_pos = binary_search_left(
             [self._booking_sort_key(item) for item in room_bookings],
             self._booking_sort_key(booking),
         )
@@ -85,7 +98,7 @@ class RoomEventBookings:
         self.booking_index[exact_key] = booking
 
         if booking.event_date not in self.sorted_dates:
-            date_index = bisect_left(self.sorted_dates, booking.event_date)
+            date_index = binary_search_left(self.sorted_dates, booking.event_date)
             self.sorted_dates.insert(date_index, booking.event_date)
 
         # Bonus 2.7
@@ -114,7 +127,7 @@ class RoomEventBookings:
             self._remove_from_list(day_bookings, booking)
             if not day_bookings:
                 del self.bookings_by_day[event_date]
-                date_index = bisect_left(self.sorted_dates, event_date)
+                date_index = binary_search_left(self.sorted_dates, event_date)
                 if date_index < len(self.sorted_dates) and self.sorted_dates[date_index] == event_date:
                     del self.sorted_dates[date_index]
 
@@ -152,16 +165,15 @@ class RoomEventBookings:
         current_date = current_datetime.date()
         current_time = current_datetime.time()
 
-        date_index = bisect_left(self.sorted_dates, current_date)
+        date_index = binary_search_left(self.sorted_dates, current_date)
         while date_index < len(self.sorted_dates):
             event_date = self.sorted_dates[date_index]
-            day_bookings = self.bookings_by_day[event_date]
-
+            day_bookings = self.bookings_by_day.get(event_date, [])
             if event_date > current_date:
                 return day_bookings[0] if day_bookings else None
 
             times = [booking.start_time for booking in day_bookings]
-            booking_index = bisect_left(times, current_time)
+            booking_index = binary_search_left(times, current_time)
             if booking_index < len(day_bookings):
                 return day_bookings[booking_index]
 
