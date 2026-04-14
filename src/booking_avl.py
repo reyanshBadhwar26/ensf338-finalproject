@@ -49,8 +49,6 @@ class BookingAVLTree:
 
         # CASE 1
         if pivot is None:
-            print("Case 1: No pivot")
-
             for node in path:
                 if key <= node.key:
                     node.balance -= 1
@@ -62,8 +60,6 @@ class BookingAVLTree:
             if (pivot.balance == -1 and key > pivot.key) or \
                (pivot.balance == 1 and key < pivot.key):
 
-                print("Case 2: Inserted into shorter subtree")
-
                 for node in path[:pivot_index + 1]:
                     if key <= node.key:
                         node.balance -= 1
@@ -73,8 +69,6 @@ class BookingAVLTree:
             # CASE 3a (outside)
             elif (pivot.balance == -1 and key <= pivot.left.key) or \
                  (pivot.balance == 1 and key > pivot.right.key):
-
-                print("Case 3a: Outside rotation")
 
                 for node in path[pivot_index + 1:]:
                     if key <= node.key:
@@ -93,7 +87,6 @@ class BookingAVLTree:
 
             # CASE 3b (inside)
             else:
-                print("Case 3b: Inside rotation")
 
                 for node in path[pivot_index + 1:]:
                     if key <= node.key:
