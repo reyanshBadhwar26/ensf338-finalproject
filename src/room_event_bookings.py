@@ -121,7 +121,7 @@ class RoomEventBookings:
         del self.booking_index[exact_key]
 
         # Bonus 2.7
-        self.avl_index.delete(room, event_date, start_time)
+        self.avl_index.delete(event_date, start_time, room)
 
         return True
 
