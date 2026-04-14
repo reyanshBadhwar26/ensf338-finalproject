@@ -1,17 +1,38 @@
+import os
+
 from campus import Campus
-from building import Building
-from map_loader import load_map_from_dot
-from navigation import *
+from building_lookup import BuildingLookup
+from request_queue import RequestQueue
+from priority_service_queue import PriorityServiceQueue
 from navigation_history import NavigationHistory
+from room_event_bookings import RoomEventBookings
+from map_loader import load_map_from_dot
+from menu import run_main_menu
 
-# Testing methods (2.1 and 2.2)
-test = Campus()
-load_map_from_dot("../data/campus_map.dot", test)
 
-route = get_shortest_path(test, "BOOKSTORE", "KINESIOLOGY")
+def main():
+    campus = Campus()
 
-# After getting the route, we can add it to the navigation history
-history = NavigationHistory()
-if route is not None:
-    history.add(route["start"], route["end"], route["path"], route["total_time"])
+    base_dir = os.path.dirname(__file__)
+    map_path = os.path.join(base_dir, "..", "data", "campus_map.dot")
 
+    lookup = BuildingLookup()
+    request_queue = RequestQueue()
+    priority_queue = PriorityServiceQueue()
+    navigation_history = NavigationHistory()
+    booking_system = RoomEventBookings()
+
+    load_map_from_dot(map_path, campus)
+
+    run_main_menu(
+        campus=campus,
+        lookup=lookup,
+        request_queue=request_queue,
+        priority_queue=priority_queue,
+        navigation_history=navigation_history,
+        booking_system=booking_system,
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -42,16 +42,26 @@ class PriorityServiceQueue:
         return None
  
     def display_queue(self):
-        print("\nEmergency Queue: ")
-        for request in self.emergency_queue.to_list():
-            print(" ", request.display_info())
+        print("\nEmergency Queue:")
+        emergency = self.emergency_queue.to_list()
+        if not emergency:
+            print("None")
+        else:
+            for request in emergency:
+                print(" ", request.display_info())
 
+        print("\nStandard Queue:")
+        standard = self.standard_queue.to_list()
+        if not standard:
+            print("None")
+        else:
+            for request in standard:
+                print(" ", request.display_info())
 
-        print("\nStandard Queue: ")
-        for request in self.standard_queue.to_list():
-            print(" ", request.display_info())
-
-
-        print("\nLow Queue: ")
-        for request in self.low_queue.to_list():
-            print(" ", request.display_info())
+        print("\nLow Queue:")
+        low = self.low_queue.to_list()
+        if not low:
+            print("None")
+        else:
+            for request in low:
+                print(" ", request.display_info())
