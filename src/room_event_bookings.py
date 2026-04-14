@@ -2,6 +2,9 @@ from bisect import bisect_left
 from datetime import datetime, date, time, timedelta
 from typing import Dict, List, Optional, Tuple
 
+#Bonus Part
+from booking_avl import BookingAVLTree
+import room
 
 class Booking:
     def __init__(self, room: str, event_date: date, start_time: time, end_time: time, event_name: str):
@@ -33,6 +36,9 @@ class RoomEventBookings:
         self.booking_index: Dict[Tuple[str, date, time], Booking] = {}
         # Dates are kept sorted so we can jump to the next upcoming day efficiently.
         self.sorted_dates: List[date] = []
+
+        # Bonus 2.7 balanced index
+        self.avl_index = BookingAVLTree()
 
     def _booking_sort_key(self, booking: Booking) -> Tuple[time, str, time, str]:
         return (booking.start_time, booking.room, booking.end_time, booking.event_name)
@@ -82,6 +88,9 @@ class RoomEventBookings:
             date_index = bisect_left(self.sorted_dates, booking.event_date)
             self.sorted_dates.insert(date_index, booking.event_date)
 
+        # Bonus 2.7
+        self.avl_index.insert(booking)
+
         return True
 
     def remove_booking(self, room: str, event_date: date, start_time: time) -> bool:
@@ -110,10 +119,18 @@ class RoomEventBookings:
                     del self.sorted_dates[date_index]
 
         del self.booking_index[exact_key]
+
+        # Bonus 2.7
+        self.avl_index.delete(room, event_date, start_time)
+
         return True
 
     def get_booking(self, room: str, event_date: date, start_time: time) -> Optional[Booking]:
         return self.booking_index.get((room, event_date, start_time))
+
+    #Bonus 2.7
+    def get_booking_avl(self, room: str, event_date: date, start_time: time):
+        return self.avl_index.search(event_date, start_time, room)
 
     def get_events_in_time_range(self, event_date: date, start_time: time, end_time: time) -> List[Booking]:
         if event_date not in self.bookings_by_day:

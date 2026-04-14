@@ -145,7 +145,7 @@ def get_shortest_path(campus_graph, start_building, end_building):
     # Display the route
     print(f"\nShortest route from {start_building} to {end_building}:")
     print(" -> ".join(path))
-    print(f"Total travel time: {total_distance}")
+    print(f"Total travel time: {total_distance} minutes")
 
     # Return for history tracking
     return {

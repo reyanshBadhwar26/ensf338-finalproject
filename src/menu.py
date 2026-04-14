@@ -2,7 +2,7 @@ from datetime import datetime
 
 from building import Building
 from room import Room
-from navigation import shortest_path, get_path
+from navigation import get_shortest_path
 from room_event_bookings import Booking
 from service_request import ServiceRequest
 
@@ -197,25 +197,11 @@ def handle_shortest_path(campus, navigation_history):
     start = prompt_valid_building_id(campus, "Enter source building ID: ")
     end = prompt_valid_building_id(campus, "Enter destination building ID: ")
 
-    try:
-        distances, previous = shortest_path(campus, start)
+    result = get_shortest_path(campus, start, end)
 
-        if end not in distances:
-            print("Destination could not be reached.")
-            return
-
-        path = get_path(previous, start, end)
-        path_str = " -> ".join(path) if isinstance(path, list) else str(path)
-
-        print(f"\nShortest path: {path_str}")
-        print(f"Total travel time: {distances[end]} minutes")
-
-        navigation_history.add(start, end, path, distances[end])
+    if result is not None:
+        navigation_history.add(result["start"], result["end"], result["path"], result["total_time"])
         print("\nRoute saved to history.")
-
-    except Exception as e:
-        print(f"Error computing shortest path: {e}")
-
 
 def handle_undo_navigation(navigation_history):
     clear_screen()
@@ -230,7 +216,7 @@ def handle_undo_navigation(navigation_history):
         print("Reverted to previous navigation:")
         print(f"Start: {previous['start']}")
         print(f"End: {previous['end']}")
-        print(f"Distance: {previous['total_time']}")
+        print(f"Time: {previous['total_time']} minutes")
         if isinstance(previous["path"], list):
             print("Path:", " -> ".join(previous["path"]))
         else:
@@ -252,7 +238,7 @@ def handle_show_navigation_history(navigation_history):
             path = " -> ".join(path) if isinstance(path, list) else path
             print(
                 f"{i}. {item['start']} -> {item['end']} | "
-                f"Distance: {item['total_time']} | Path: {path}"
+                f"Time: {item['total_time']} minutes | Path: {path}"
             )
 
 
@@ -267,6 +253,7 @@ def booking_menu(campus, booking_system):
         print("4. Show events on a day")
         print("5. Query events in a time range")
         print("6. Show next upcoming event")
+        print("7. Print booking AVL tree - Bonus 2.7")
         print("0. Back")
 
         choice = input("\n>> ").strip()
@@ -283,10 +270,12 @@ def booking_menu(campus, booking_system):
             query_time_range(booking_system)
         elif choice == "6":
             show_next_upcoming(booking_system)
+        elif choice == "7":
+            show_booking_avl_tree(booking_system)
         elif choice == "0":
             return
         else:
-            print("Invalid choice. Please pick a number from 0 to 6.")
+            print("Invalid choice. Please pick a number from 0 to 7.")
 
 
 def add_booking(campus, booking_system):
@@ -808,3 +797,23 @@ def run_demo_setup(campus, lookup, booking_system):
     print("Sample rooms ensured.")
     print("Lookup refreshed.")
     print(f"Sample bookings added: {added}")
+
+#Bonus Part
+def show_booking_avl_tree(booking_system):
+    clear_screen()
+    print("Booking AVL Tree")
+    print("-" * 16)
+
+    if not hasattr(booking_system, "avl_index"):
+        print("AVL index is not set up in the booking system.")
+        return
+
+    if booking_system.avl_index.root is None:
+        print("The booking AVL tree is empty.")
+        return
+
+    print("This tree is the bonus balanced event index.\n")
+    booking_system.avl_index.print_tree()
+
+    if hasattr(booking_system.avl_index, "is_balanced"):
+        print("\nAVL balance valid:", booking_system.avl_index.is_balanced())

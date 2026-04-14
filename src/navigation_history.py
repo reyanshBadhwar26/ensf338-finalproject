@@ -16,6 +16,9 @@ class Stack:
             return None
         
         return self.data[-1]
+
+    def is_empty(self):
+        return len(self.data) == 0
     
 class NavigationHistory:
     def __init__(self):
@@ -32,11 +35,8 @@ class NavigationHistory:
         self.history.push(step)
 
     def undo(self):
-        if self.history.peek() is None:
+        if self.history.is_empty():
             return None
-
-        if len(self.history.data) == 1:
-            return self.history.peek()
-
+        
         self.history.pop()
         return self.history.peek()
