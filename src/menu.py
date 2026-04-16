@@ -631,13 +631,16 @@ def lookup_room(lookup):
     print("-" * 11)
 
     while True:
-        room_id = input("Room ID (press Enter to cancel): ").strip().upper()
+        user_input = input("Room ID (press Enter to cancel): ").strip()
 
-        if room_id == "":
+        if user_input == "":
             print("Room lookup cancelled.")
             return
 
-        room = lookup.lookup_room(room_id)
+        # Keep original input for display, normalize a copy for searching
+        search_text = "_".join(user_input.upper().split())
+
+        room = lookup.lookup_room(search_text)
 
         if room is not None:
             print(f"Room ID: {room.room_id}")
@@ -647,10 +650,10 @@ def lookup_room(lookup):
 
         matches = []
         for stored_room in lookup.rooms_by_id.values():
-            if room_id in stored_room.room_id.upper():
+            if search_text in stored_room.room_id.upper():
                 matches.append(stored_room)
 
-        print(f'No exact room found for "{room_id}".')
+        print(f'No exact room found for "{user_input}".')
 
         if matches:
             print("Rooms found containing that text:")
@@ -658,7 +661,7 @@ def lookup_room(lookup):
                 print(f"  {match.room_id} | capacity={match.capacity} | type={match.room_type}")
             print("Please enter the full correct room ID.\n")
         else:
-            print("No rooms found containing that text.")
+            print(f'No rooms found containing "{user_input}".')
             print("Please try again.\n")
 
 
