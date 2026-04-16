@@ -3,6 +3,27 @@ from building import Building
 from campus import Campus
 import campus as campus
 
+#Grid coordinates for the buildings
+BUILDING_COORDS = {
+    "HUNTER_COMMONS": (0, 4),
+    "ARTS": (2, 5),
+    "LIBRARY": (2, 3),
+    "BOOKSTORE": (0, 2),
+
+    "SCI_B": (4, 5),
+    "SCI_A": (4, 3),
+    "KINESIOLOGY": (6, 5),
+    "GYM": (7, 3),
+
+    "MACHALL": (2, 1),
+    "ICT": (4, 1),
+    "ENG_BLOCK": (6, 2),
+
+    "ADMIN": (1, 0),
+    "STUDENT_UNION": (4, 0),
+    "PARKADE": (6, 0),
+    "RESIDENCE": (3, -2),
+}
 
 def load_map_from_dot(filename: str, campus):
     """
@@ -26,14 +47,14 @@ def load_map_from_dot(filename: str, campus):
                     campus.buildings[building_1] = Building(
                         building_id=building_1,
                         name=building_1,
-                        location=(0, 0)
+                        location=BUILDING_COORDS.get(building_1, (0, 0))
                     )
 
                 if building_2 not in campus.buildings:
                     campus.buildings[building_2] = Building(
                         building_id=building_2,
                         name=building_2,
-                        location=(0, 0)
+                        location=BUILDING_COORDS.get(building_2, (0, 0))
                     )
 
                 # Create pathway entries if missing

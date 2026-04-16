@@ -40,3 +40,21 @@ class NavigationHistory:
         
         self.history.pop()
         return self.history.peek()
+    
+#Demonstration to show that it works with atleast 10 undos
+def demo_undo():
+    history = NavigationHistory()
+
+    # Add 11 routes
+    for i in range(11):
+        history.add(f"A{i}", f"B{i}", [f"A{i}", f"B{i}"], i)
+
+    print("Initial history size:", len(history.history.data))
+
+    # Undo 10 times
+    for i in range(10):
+        prev = history.undo()
+        print(f"Undo {i+1}: ", prev)
+
+if __name__ == "__main__":
+    demo_undo()

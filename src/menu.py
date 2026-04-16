@@ -53,7 +53,7 @@ def print_valid_building_ids(campus):
 
 def prompt_valid_building_id(campus, message: str) -> str:
     while True:
-        building_id = input(message).strip().upper()
+        building_id = "_".join(input(message).strip().upper().split())
         if building_id in campus.buildings:
             return building_id
 
@@ -630,15 +630,36 @@ def lookup_room(lookup):
     print("Lookup Room")
     print("-" * 11)
 
-    room_id = prompt_nonempty("Room ID: ").upper()
-    room = lookup.lookup_room(room_id)
+    while True:
+        room_id = input("Room ID (press Enter to cancel): ").strip().upper()
 
-    if room is None:
-        print("Room not found.")
-    else:
-        print(f"Room ID: {room.room_id}")
-        print(f"Capacity: {room.capacity}")
-        print(f"Type: {room.room_type}")
+        if room_id == "":
+            print("Room lookup cancelled.")
+            return
+
+        room = lookup.lookup_room(room_id)
+
+        if room is not None:
+            print(f"Room ID: {room.room_id}")
+            print(f"Capacity: {room.capacity}")
+            print(f"Type: {room.room_type}")
+            return
+
+        matches = []
+        for stored_room in lookup.rooms_by_id.values():
+            if room_id in stored_room.room_id.upper():
+                matches.append(stored_room)
+
+        print(f'No exact room found for "{room_id}".')
+
+        if matches:
+            print("Rooms found containing that text:")
+            for match in matches:
+                print(f"  {match.room_id} | capacity={match.capacity} | type={match.room_type}")
+            print("Please enter the full correct room ID.\n")
+        else:
+            print("No rooms found containing that text.")
+            print("Please try again.\n")
 
 
 def show_all_buildings(campus):
