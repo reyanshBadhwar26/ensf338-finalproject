@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, time, timedelta
 
 from building import Building
 from room import Room
 from navigation import get_shortest_path
 from room_event_bookings import Booking
 from service_request import ServiceRequest
+import random
 
 
 def clear_screen():
@@ -131,10 +132,29 @@ def seed_demo_bookings(booking_system):
         ),
     ]
 
+    
     count = 0
     for booking in demo:
         if booking_system.add_booking(booking):
             count += 1
+
+    rooms = ["ICT-101", "ENG_BLOCK-201", "SCI_A-201", "ICT-102", "LAB-1"]
+    event_names = ["Study Session", "Project Meeting", "Team Sync", "Workshop", "Lab Session", "Office Hours", "Group Discussion", "Seminar", "Review Session", "Hackathon"]
+    base_date = datetime(2026, 4, 21).date()
+
+    for day_offset in range(20):  # 20 days
+        for i, room in enumerate(rooms):
+            start_hour = 8 + (i * 2)
+            booking = Booking(
+                room,
+                base_date + timedelta(days=day_offset),
+                time(start_hour, 0),
+                time(start_hour + 1, 0),
+                random.choice(event_names)
+            )
+            if booking_system.add_booking(booking):
+                count += 1
+        
     return count
 
 
