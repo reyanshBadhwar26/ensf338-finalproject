@@ -1,3 +1,6 @@
+# Menu and user interface.
+# This file handles user input and provides access to navigation, booking, lookup, and request features.
+
 from datetime import datetime, time, timedelta
 
 from building import Building
@@ -8,10 +11,12 @@ from service_request import ServiceRequest
 import random
 
 
+# Prints a blank line to visually separate menu screens.
 def clear_screen():
     print("\n")
 
 
+# Repeatedly prompts until the user enters a non-empty string.
 def prompt_nonempty(message: str) -> str:
     while True:
         value = input(message).strip()
@@ -20,6 +25,7 @@ def prompt_nonempty(message: str) -> str:
         print("Input cannot be empty.")
 
 
+# Repeatedly prompts until the user enters a valid integer.
 def prompt_int(message: str) -> int:
     while True:
         value = input(message).strip()
@@ -29,6 +35,7 @@ def prompt_int(message: str) -> int:
             print("Please enter a valid integer.")
 
 
+# Repeatedly prompts until the user enters a valid date in YYYY-MM-DD format.
 def prompt_date(message: str):
     while True:
         value = input(message).strip()
@@ -38,6 +45,7 @@ def prompt_date(message: str):
             print("Use format YYYY-MM-DD")
 
 
+# Repeatedly prompts until the user enters a valid time in HH:MM format.
 def prompt_time(message: str):
     while True:
         value = input(message).strip()
@@ -47,11 +55,14 @@ def prompt_time(message: str):
             print("Use format HH:MM")
 
 
+# Displays all valid building IDs currently stored in the campus map.
 def print_valid_building_ids(campus):
     print("Valid building IDs:")
     print(", ".join(sorted(campus.buildings.keys())))
 
 
+# Repeatedly prompts until the user enters a valid building ID.
+# Also normalizes the input by converting to uppercase and replacing spaces with underscores.
 def prompt_valid_building_id(campus, message: str) -> str:
     while True:
         building_id = "_".join(input(message).strip().upper().split())
@@ -62,12 +73,14 @@ def prompt_valid_building_id(campus, message: str) -> str:
         print_valid_building_ids(campus)
 
 
+# Displays all valid room IDs for a specific building.
 def print_valid_room_ids(campus, building_id: str):
     room_ids = sorted(campus.buildings[building_id].rooms.keys())
     print(f"\nValid room IDs for {building_id}:")
     print(", ".join(room_ids))
 
 
+# Repeatedly prompts until the user enters a valid room ID for the chosen building.
 def prompt_valid_room_id(campus, building_id: str, message: str = "Room ID: ") -> str:
     while True:
         room_id = input(message).strip().upper()
@@ -78,6 +91,8 @@ def prompt_valid_room_id(campus, building_id: str, message: str = "Room ID: ") -
         print_valid_room_ids(campus, building_id)
 
 
+# Ensures that each building has at least two sample rooms available.
+# This helps support booking and lookup demos even if no rooms were preloaded.
 def ensure_sample_rooms(campus):
     for building_id, building in campus.buildings.items():
         if not hasattr(building, "rooms") or building.rooms is None:
@@ -90,6 +105,7 @@ def ensure_sample_rooms(campus):
             building.rooms[room2_id] = Room(room2_id, 25, "lab")
 
 
+# Clears and reloads the hash-table lookup structure using the current campus data.
 def seed_lookup_from_campus(campus, lookup):
     lookup.buildings_by_id.clear()
     lookup.rooms_by_id.clear()
@@ -100,6 +116,7 @@ def seed_lookup_from_campus(campus, lookup):
             lookup.insert_room(room)
 
 
+# Adds demo bookings to the booking system for testing and demonstrations.
 def seed_demo_bookings(booking_system):
     demo = [
         Booking(
@@ -132,16 +149,18 @@ def seed_demo_bookings(booking_system):
         ),
     ]
 
-    
+    # Tracks how many bookings were successfully inserted.
     count = 0
     for booking in demo:
         if booking_system.add_booking(booking):
             count += 1
 
+    # Additional generated bookings for a larger demo dataset.
     rooms = ["ICT-101", "ENG_BLOCK-201", "SCI_A-201", "ICT-102", "LAB-1"]
     event_names = ["Study Session", "Project Meeting", "Team Sync", "Workshop", "Lab Session", "Office Hours", "Group Discussion", "Seminar", "Review Session", "Hackathon"]
     base_date = datetime(2026, 4, 21).date()
 
+    # Generates bookings across 20 days for multiple rooms.
     for day_offset in range(20):  # 20 days
         for i, room in enumerate(rooms):
             start_hour = 8 + (i * 2)
@@ -158,6 +177,7 @@ def seed_demo_bookings(booking_system):
     return count
 
 
+# Displays the main menu options.
 def print_main_menu():
     print("Campus Navigation and Event Management System")
     print("-" * 46)
@@ -172,6 +192,7 @@ def print_main_menu():
     print("0. Exit")
 
 
+# Runs the main menu loop and dispatches user choices to the correct feature.
 def run_main_menu(campus, lookup, request_queue, priority_queue, navigation_history, booking_system):
     ensure_sample_rooms(campus)
     seed_lookup_from_campus(campus, lookup)
@@ -204,6 +225,7 @@ def run_main_menu(campus, lookup, request_queue, priority_queue, navigation_hist
             print("Invalid choice. Please pick a number from 0 to 8.")
 
 
+# Handles shortest path queries and stores successful routes in navigation history.
 def handle_shortest_path(campus, navigation_history):
     clear_screen()
     print("Shortest Path Navigation")
@@ -223,6 +245,8 @@ def handle_shortest_path(campus, navigation_history):
         navigation_history.add(result["start"], result["end"], result["path"], result["total_time"])
         print("\nRoute saved to history.")
 
+
+# Undoes the most recent navigation action and restores the previous route if available.
 def handle_undo_navigation(navigation_history):
     clear_screen()
     print("Undo Navigation")
@@ -243,6 +267,7 @@ def handle_undo_navigation(navigation_history):
             print("Path:", previous["path"])
 
 
+# Displays all saved navigation history entries.
 def handle_show_navigation_history(navigation_history):
     clear_screen()
     print("Navigation History")
@@ -262,6 +287,7 @@ def handle_show_navigation_history(navigation_history):
             )
 
 
+# Submenu for all booking-related features.
 def booking_menu(campus, booking_system):
     while True:
         clear_screen()
@@ -298,6 +324,7 @@ def booking_menu(campus, booking_system):
             print("Invalid choice. Please pick a number from 0 to 7.")
 
 
+# Adds a new booking after validating building, room, date, and times.
 def add_booking(campus, booking_system):
     clear_screen()
     print("Add Booking")
@@ -312,6 +339,7 @@ def add_booking(campus, booking_system):
     start_time = prompt_time("Start time (HH:MM): ")
     end_time = prompt_time("End time   (HH:MM): ")
 
+    # Prevents invalid time ranges.
     if end_time <= start_time:
         print("End time must be after start time.")
         return
@@ -325,6 +353,7 @@ def add_booking(campus, booking_system):
         print("Could not add booking. It may already exist or overlap.")
 
 
+# Removes a booking using room, date, and start time as the lookup key.
 def remove_booking(campus, booking_system):
     clear_screen()
     print("Remove Booking")
@@ -344,6 +373,7 @@ def remove_booking(campus, booking_system):
         print("Booking not found.")
 
 
+# Retrieves and displays one exact booking if it exists.
 def get_exact_booking(campus, booking_system):
     clear_screen()
     print("Get Exact Booking")
@@ -363,6 +393,7 @@ def get_exact_booking(campus, booking_system):
         print(booking)
 
 
+# Displays all events scheduled on a specific date.
 def show_events_on_day(booking_system):
     clear_screen()
     print("Events on a Day")
@@ -378,6 +409,7 @@ def show_events_on_day(booking_system):
             print(event)
 
 
+# Displays all events within a given time range on a specific date.
 def query_time_range(booking_system):
     clear_screen()
     print("Query Events in Time Range")
@@ -387,6 +419,7 @@ def query_time_range(booking_system):
     start_time = prompt_time("Start time (HH:MM): ")
     end_time = prompt_time("End time   (HH:MM): ")
 
+    # Prevents invalid time ranges.
     if end_time <= start_time:
         print("End time must be after start time.")
         return
@@ -400,6 +433,7 @@ def query_time_range(booking_system):
             print(event)
 
 
+# Shows the next event scheduled after the current system time.
 def show_next_upcoming(booking_system):
     clear_screen()
     print("Next Upcoming Event")
@@ -413,6 +447,7 @@ def show_next_upcoming(booking_system):
         print(next_event)
 
 
+# Submenu for priority-based service requests.
 def priority_queue_menu(priority_queue):
     while True:
         clear_screen()
@@ -440,6 +475,7 @@ def priority_queue_menu(priority_queue):
             print("Invalid choice. Please pick a number from 0 to 4.")
 
 
+# Adds a service request with one of three allowed priority levels.
 def add_service_request(priority_queue):
     clear_screen()
     print("Add Service Request")
@@ -450,6 +486,7 @@ def add_service_request(priority_queue):
     description = prompt_nonempty("Description: ")
     requester_name = prompt_nonempty("Requester name: ")
 
+    # Ensures the priority entered is valid.
     while True:
         priority = input("Priority (Emergency / Standard / Low): ").strip().title()
         if priority in {"Emergency", "Standard", "Low"}:
@@ -468,6 +505,7 @@ def add_service_request(priority_queue):
     print("Service request added.")
 
 
+# Removes and displays the highest-priority pending request.
 def serve_next_request(priority_queue):
     clear_screen()
     print("Serve Next Request")
@@ -482,6 +520,7 @@ def serve_next_request(priority_queue):
         print(request.display_info())
 
 
+# Displays the next request that would be served without removing it.
 def peek_next_request(priority_queue):
     clear_screen()
     print("Peek Next Request")
@@ -495,6 +534,7 @@ def peek_next_request(priority_queue):
         print(request.display_info())
 
 
+# Displays all service requests across all priority levels.
 def display_priority_queues(priority_queue):
     clear_screen()
     print("All Priority Queues")
@@ -502,6 +542,7 @@ def display_priority_queues(priority_queue):
     priority_queue.display_queue()
 
 
+# Submenu for the fast building and room lookup feature.
 def lookup_menu(campus, lookup):
     while True:
         clear_screen()
@@ -538,6 +579,7 @@ def lookup_menu(campus, lookup):
             print("Invalid choice. Please pick a number from 0 to 7.")
 
 
+# Inserts a new building into both the campus map and the lookup table.
 def insert_building(campus, lookup):
     clear_screen()
     print("Insert Building")
@@ -556,6 +598,8 @@ def insert_building(campus, lookup):
     building.rooms = {}
 
     campus.buildings[building_id] = building
+
+    # Ensures the building also exists in the pathway graph.
     if building_id not in campus.pathways:
         campus.pathways[building_id] = {}
 
@@ -563,6 +607,7 @@ def insert_building(campus, lookup):
     print("Building inserted.")
 
 
+# Deletes a building and removes all related rooms and pathway connections.
 def delete_building(campus, lookup):
     clear_screen()
     print("Delete Building")
@@ -571,15 +616,18 @@ def delete_building(campus, lookup):
     building_id = prompt_valid_building_id(campus, "Building ID: ")
     building = campus.buildings[building_id]
 
+    # Remove the building's rooms from the lookup table first.
     for room_id in list(building.rooms.keys()):
         lookup.delete_room(room_id)
 
     del campus.buildings[building_id]
     lookup.delete_building(building_id)
 
+    # Remove the building from the campus graph.
     if building_id in campus.pathways:
         del campus.pathways[building_id]
 
+    # Remove all edges pointing to that building.
     for other in campus.pathways:
         if building_id in campus.pathways[other]:
             del campus.pathways[other][building_id]
@@ -587,6 +635,7 @@ def delete_building(campus, lookup):
     print("Building deleted.")
 
 
+# Looks up and displays one building and all of its rooms.
 def lookup_building(campus, lookup):
     clear_screen()
     print("Lookup Building")
@@ -609,6 +658,7 @@ def lookup_building(campus, lookup):
             print("  none")
 
 
+# Inserts a new room into a selected building and the lookup table.
 def insert_room(campus, lookup):
     clear_screen()
     print("Insert Room")
@@ -630,6 +680,7 @@ def insert_room(campus, lookup):
     print("Room inserted.")
 
 
+# Deletes a room from both the building and the lookup table.
 def delete_room(campus, lookup):
     clear_screen()
     print("Delete Room")
@@ -645,6 +696,7 @@ def delete_room(campus, lookup):
     print("Room deleted.")
 
 
+# Looks up a room by exact room ID, or suggests partial matches if no exact match is found.
 def lookup_room(lookup):
     clear_screen()
     print("Lookup Room")
@@ -668,6 +720,7 @@ def lookup_room(lookup):
             print(f"Type: {room.room_type}")
             return
 
+        # Stores partial matches if exact lookup fails.
         matches = []
         for stored_room in lookup.rooms_by_id.values():
             if search_text in stored_room.room_id.upper():
@@ -685,6 +738,7 @@ def lookup_room(lookup):
             print("Please try again.\n")
 
 
+# Displays all buildings currently loaded in the campus system.
 def show_all_buildings(campus):
     clear_screen()
     print("All Buildings")
@@ -697,6 +751,7 @@ def show_all_buildings(campus):
             print(f"{i}. {building_id}")
 
 
+# Submenu for incoming request pipeline operations.
 def request_pipeline_menu(campus, request_queue):
     while True:
         clear_screen()
@@ -727,6 +782,7 @@ def request_pipeline_menu(campus, request_queue):
             print("Invalid choice. Please pick a number from 0 to 5.")
 
 
+# Enqueues a navigation request in FIFO order.
 def enqueue_navigation_request(campus, request_queue):
     clear_screen()
     print("Enqueue Navigation Request")
@@ -746,6 +802,7 @@ def enqueue_navigation_request(campus, request_queue):
     print("Navigation request enqueued.")
 
 
+# Enqueues a generic service request in FIFO order.
 def enqueue_service_pipeline_request(request_queue):
     clear_screen()
     print("Enqueue Service Request")
@@ -764,6 +821,7 @@ def enqueue_service_pipeline_request(request_queue):
     print("Service request enqueued.")
 
 
+# Processes the next request in arrival order.
 def process_next_request(request_queue):
     clear_screen()
     print("Process Next Request")
@@ -778,6 +836,7 @@ def process_next_request(request_queue):
     print(request)
 
 
+# Displays all currently pending requests in the queue.
 def show_pending_requests(request_queue):
     clear_screen()
     print("Pending Requests")
@@ -791,6 +850,7 @@ def show_pending_requests(request_queue):
             print(f"{i}. {request}")
 
 
+# Demonstrates FIFO processing using 20 automatically generated requests.
 def simulate_20_requests(request_queue):
     clear_screen()
     print("Simulate 20 Sequential Requests")
@@ -798,6 +858,7 @@ def simulate_20_requests(request_queue):
 
     generated_requests = []
 
+    # Creates 20 alternating service and navigation requests.
     for i in range(1, 21):
         if i % 2 == 0:
             request = {
@@ -829,6 +890,7 @@ def simulate_20_requests(request_queue):
         count += 1
 
 
+# Runs a quick setup for demos by ensuring rooms, refreshing lookup, and adding sample bookings.
 def run_demo_setup(campus, lookup, booking_system):
     clear_screen()
     print("Demo Setup")
@@ -842,7 +904,8 @@ def run_demo_setup(campus, lookup, booking_system):
     print("Lookup refreshed.")
     print(f"Sample bookings added: {added}")
 
-#Bonus Part
+
+# Bonus feature: prints the AVL tree used as the balanced event index.
 def show_booking_avl_tree(booking_system):
     clear_screen()
     print("Booking AVL Tree")
@@ -859,5 +922,6 @@ def show_booking_avl_tree(booking_system):
     print("This tree is the bonus balanced event index.\n")
     booking_system.avl_index.print_tree()
 
+    # If available, also checks whether the AVL tree remains balanced.
     if hasattr(booking_system.avl_index, "is_balanced"):
         print("\nAVL balance valid:", booking_system.avl_index.is_balanced())
