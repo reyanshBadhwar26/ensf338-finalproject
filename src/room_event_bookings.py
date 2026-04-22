@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 from booking_avl import BookingAVLTree
 import room
 
+# Binary search returning the leftmost index where "target" can be inserted
 def binary_search_left(keys, target):
     left = 0
     right = len(keys)
@@ -18,6 +19,7 @@ def binary_search_left(keys, target):
 
     return left
 
+# Represents single booking room with a time interval on a specific date
 class Booking:
     def __init__(self, room: str, event_date: date, start_time: time, end_time: time, event_name: str):
         self.room = room
@@ -32,13 +34,20 @@ class Booking:
             f"{self.start_time}-{self.end_time}, '{self.event_name}')"
         )
 
+    # Checks if two bookings overlap in time, matters or same room and date
     def overlaps(self, other: 'Booking') -> bool:
         if self.event_date != other.event_date or self.room != other.room:
             return False
+        # Two intervals overlap unless one ends before the other starts
         return not (self.end_time <= other.start_time or other.end_time <= self.start_time)
 
 
 class RoomEventBookings:
+    """
+    Main booking system that manages bookings group by day, grouped by room and day, 
+    fast exact lookup via dictionary, sorted dates for "next event" queries,
+    AVL tree index for bonus
+    """
     def __init__(self):
         # All bookings for a day, kept sorted by time.
         self.bookings_by_day: Dict[date, List[Booking]] = {}
@@ -53,14 +62,17 @@ class RoomEventBookings:
         self.avl_index = BookingAVLTree()
 
 
+    #  Defines sorting priority start time, room, end time, event name
     def _booking_sort_key(self, booking: Booking) -> Tuple[time, str, time, str]:
         return (booking.start_time, booking.room, booking.end_time, booking.event_name)
 
+    # Inserts booking into sorted list using binary search 
     def _insert_sorted(self, items: List[Booking], booking: Booking) -> None:
         keys = [self._booking_sort_key(item) for item in items]
         index = binary_search_left(keys, self._booking_sort_key(booking))
         items.insert(index, booking)
 
+    # Removes booking from list
     def _remove_from_list(self, items: List[Booking], booking: Booking) -> bool:
         for i, item in enumerate(items):
             if (
@@ -71,32 +83,41 @@ class RoomEventBookings:
                 and item.event_name == booking.event_name
             ):
                 del items[i]
-                return True
+                return True # Returns true if removed
         return False
 
+    # Adds booking if no duplicates or overlap
     def add_booking(self, booking: Booking) -> bool:
         exact_key = (booking.room, booking.event_date, booking.start_time)
+        # Reject duplicate booking
         if exact_key in self.booking_index:
             return False
 
+        # Get or create room-specific booking list
         day_rooms = self.bookings_by_room_day.setdefault(booking.event_date, {})
         room_bookings = day_rooms.setdefault(booking.room, [])
 
+        # Find insertion position using binary search
         insert_pos = binary_search_left(
             [self._booking_sort_key(item) for item in room_bookings],
             self._booking_sort_key(booking),
         )
-
+        # Check overlap with previous booking
         if insert_pos > 0 and room_bookings[insert_pos - 1].overlaps(booking):
             return False
+        # Check overlap with next booking
         if insert_pos < len(room_bookings) and room_bookings[insert_pos].overlaps(booking):
             return False
 
+        # Insert into room-specific list
         self._insert_sorted(room_bookings, booking)
+        # Insert into day-wide list
         day_bookings = self.bookings_by_day.setdefault(booking.event_date, [])
         self._insert_sorted(day_bookings, booking)
+        # Add to exact lookup index
         self.booking_index[exact_key] = booking
 
+        # Maintain sorted dates list
         if booking.event_date not in self.sorted_dates:
             date_index = binary_search_left(self.sorted_dates, booking.event_date)
             self.sorted_dates.insert(date_index, booking.event_date)
@@ -107,11 +128,15 @@ class RoomEventBookings:
         return True
 
     def remove_booking(self, room: str, event_date: date, start_time: time) -> bool:
+        """
+        Removes a booking from all data structures: room/day mapping, day mapping,
+        exact index, sorted dates (if empty), AVL tree
+        """
         exact_key = (room, event_date, start_time)
         booking = self.booking_index.get(exact_key)
         if booking is None:
             return False
-
+        # Remove from room/day structure
         day_rooms = self.bookings_by_room_day.get(event_date)
         if day_rooms is not None:
             room_bookings = day_rooms.get(room)
@@ -122,6 +147,7 @@ class RoomEventBookings:
             if not day_rooms:
                 del self.bookings_by_room_day[event_date]
 
+        # Remove from day-wide list
         day_bookings = self.bookings_by_day.get(event_date)
         if day_bookings is not None:
             self._remove_from_list(day_bookings, booking)
@@ -131,6 +157,7 @@ class RoomEventBookings:
                 if date_index < len(self.sorted_dates) and self.sorted_dates[date_index] == event_date:
                     del self.sorted_dates[date_index]
 
+        # Remove from exact lookup
         del self.booking_index[exact_key]
 
         # Bonus 2.7
@@ -165,10 +192,12 @@ class RoomEventBookings:
         current_date = current_datetime.date()
         current_time = current_datetime.time()
 
+        # Find first possible date
         date_index = binary_search_left(self.sorted_dates, current_date)
         while date_index < len(self.sorted_dates):
             event_date = self.sorted_dates[date_index]
             day_bookings = self.bookings_by_day.get(event_date, [])
+            # If future date, return earliest event of that day
             if event_date > current_date:
                 return day_bookings[0] if day_bookings else None
 
@@ -176,7 +205,7 @@ class RoomEventBookings:
             booking_index = binary_search_left(times, current_time)
             if booking_index < len(day_bookings):
                 return day_bookings[booking_index]
-
+            # Move to next date
             date_index += 1
 
         return None
