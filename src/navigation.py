@@ -1,22 +1,24 @@
-# Min-heap to be used for Dijkstra's algorithm to find the shortest path in the graph
+# Min-heap implementation for priority queue (used in Dijkstra)
 class Heap:
     def __init__(self):
-        self.data = []
+        self.data = [] 
 
-    # Turns a list into a min-heap
+    # Convert list into a valid min-heap
     def heapify(self, values):
         self.data = values.copy()
 
-        # Start from the last parent and move upward
+        # Start from last non-leaf node and bubble down
         for i in range(len(self.data) // 2 - 1, -1, -1):
             self.bubble_down(i)
 
         return self.data
 
+    # Insert new value and maintain heap property
     def enqueue(self, value):
         self.data.append(value)
         self.bubble_up(len(self.data) - 1)
 
+    # Remove smallest element
     def dequeue(self):
         if len(self.data) == 0:
             return None
@@ -32,6 +34,7 @@ class Heap:
     def is_empty(self):
         return len(self.data) == 0
 
+    # Move element up until heap property satisfied
     def bubble_up(self, index):
         while index > 0:
             parent = (index - 1) // 2
@@ -42,6 +45,7 @@ class Heap:
             else:
                 break
 
+    # Move element down until heap property satisfied
     def bubble_down(self, index):
         size = len(self.data)
 
@@ -62,15 +66,18 @@ class Heap:
             else:
                 break
 
-# Dijkstra's algorithm to find shortest path 
+
+# Dijkstra’s algorithm to compute shortest paths from a start node
 def shortest_path(campus_graph, start_building):
     
+    # Check if start exists
     if start_building not in campus_graph.pathways:
         return None
 
-    times = {}
-    previous_buildings = {}
+    times = {}  # shortest distances
+    previous_buildings = {}  # track path
     
+    # Initialize all distances to infinity
     for building in campus_graph.pathways:
         times[building] = float('inf')
         previous_buildings[building] = None
@@ -78,24 +85,27 @@ def shortest_path(campus_graph, start_building):
     times[start_building] = 0
 
     heap = Heap()
-    heap.enqueue((0, start_building)) # use a tuple to compare using distance
+    heap.enqueue((0, start_building))  # store (distance, node)
 
     visited = set()
 
     while heap.is_empty() == False:
         current_dist, current_vertex = heap.dequeue()
 
+        # Skip if already processed
         if current_vertex in visited:
             continue
 
         visited.add(current_vertex)
 
+        # Relax edges
         for neighbor, weight in campus_graph.pathways[current_vertex].items():
             if neighbor in visited:
                 continue
 
             new_dist = current_dist + weight
 
+            # Update if shorter path found
             if new_dist < times[neighbor]:
                 times[neighbor] = new_dist
                 previous_buildings[neighbor] = current_vertex
@@ -103,21 +113,27 @@ def shortest_path(campus_graph, start_building):
 
     return times, previous_buildings
 
+
+# Reconstruct path from start to end
 def get_path(previous_buildings, start_building, end_building):
     path = []
     current = end_building
 
+    # Trace backwards using previous map
     while current is not None:
         path.append(current)
         current = previous_buildings[current]
 
     path.reverse()
 
+    # Validate path starts correctly
     if path and path[0] == start_building:
         return path
     else:
         return None
 
+
+# Main function to compute and display shortest path
 def get_shortest_path(campus_graph, start_building, end_building):
 
     if start_building not in campus_graph.pathways:
@@ -142,12 +158,12 @@ def get_shortest_path(campus_graph, start_building, end_building):
 
     total_distance = times[end_building]
 
-    # Display the route
+    # Print results properly formatted
     print(f"\nShortest route from {start_building} to {end_building}:")
     print(" -> ".join(path))
     print(f"Total travel time: {total_distance} minutes")
 
-    # Return for history tracking
+    # Return for use in history tracking
     return {
         "start": start_building,
         "end": end_building,
